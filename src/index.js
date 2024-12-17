@@ -9,17 +9,15 @@ const config = require('./config');
 const bot = new Telegraf(config.BOT_TOKEN);
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
 
-// Команды бота
+// Обновленная команда start с украинским текстом
 bot.command('start', (ctx) => {
-    ctx.reply('Найдите рецепты по вашим ингредиентам!', {
+    ctx.reply('Знайдіть рецепти за вашими інгредієнтами!', {
         reply_markup: {
             keyboard: [[{
-                text: "Открыть приложение",
+                text: "Відкрити додаток",
                 web_app: {
                     url: process.env.WEBAPP_URL || 'https://rezept-finden.netlify.app'
                 }
@@ -35,76 +33,19 @@ bot.on('web_app_data', (ctx) => {
     console.log('Получены данные из веб-приложения:', ctx.webAppData);
 });
 
-// API endpoints
-async function searchRecipesByIngredients(ingredients, diet = '') {
-    const params = new URLSearchParams({
-        apiKey: config.SPOONACULAR_API_KEY,
-        ingredients: ingredients.join(','),
-        number: 10,
-        diet: diet,
-        instructionsRequired: true
-    });
-
-    try {
-        const response = await fetch(`${config.API_BASE_URL}/findByIngredients?${params}`);
-        if (!response.ok) throw new Error('API request failed');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching recipes:', error);
-        throw error;
-    }
-}
-
-async function getRecipeDetails(id) {
-    const params = new URLSearchParams({
-        apiKey: config.SPOONACULAR_API_KEY
-    });
-
-    try {
-        const response = await fetch(`${config.API_BASE_URL}/${id}/information?${params}`);
-        if (!response.ok) throw new Error('API request failed');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching recipe details:', error);
-        throw error;
-    }
-}
-
-// Endpoints
-app.post('/api/search-recipes', async (req, res) => {
-    try {
-        const { ingredients, diet } = req.body;
-        const recipes = await searchRecipesByIngredients(ingredients, diet);
-        res.json(recipes);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch recipes' });
-    }
-});
-
-app.get('/api/recipe/:id', async (req, res) => {
-    try {
-        const recipe = await getRecipeDetails(req.params.id);
-        res.json(recipe);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch recipe details' });
-    }
-});
-
-// Запуск сервера и бота
-app.listen(config.PORT, () => {
-    console.log(`Server is running on port ${config.PORT}`);
-});
-
+// Запуск бота
 bot.launch().then(() => {
     console.log('Бот запущен');
 }).catch((error) => {
     console.error('Ошибка запуска бота:', error);
 });
 
-// Graceful shutdown
-process.once('SIGINT', () => {
-    bot.stop('SIGINT');
+// Для локальной разработки используем порт 3001
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
 });
-process.once('SIGTERM', () => {
-    bot.stop('SIGTERM');
-});
+
+// Graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
