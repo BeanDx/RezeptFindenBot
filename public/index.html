@@ -80,7 +80,7 @@
         
         console.log('Отправляем запрос:', requestData);
 
-        const response = await fetch('/.netlify/functions/api/search-recipes', {
+        const response = await fetch('/api/search-recipes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -148,7 +148,7 @@
         async function getRecipeDetails(id) {
             try {
                 showLoading(true);
-                const response = await fetch(`/.netlify/functions/api/recipe/${id}`);
+                const response = await fetch(`/api/recipe/${id}`);
                 if (!response.ok) throw new Error('Помилка при отриманні деталей рецепту');
                 const recipe = await response.json();
                 
