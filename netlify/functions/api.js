@@ -25,7 +25,8 @@ router.post('/search-recipes', async (req, res) => {
             instructionsRequired: true,
             fillIngredients: true,
             addRecipeInformation: true,
-            language: 'uk'
+            language: 'en',
+            includeTranslations: 'uk'
         });
 
         const url = `${API_BASE_URL}/complexSearch?${params}`;
@@ -41,7 +42,18 @@ router.post('/search-recipes', async (req, res) => {
         }
 
         const data = JSON.parse(responseText);
-        res.json(data.results || []);
+        
+        const translatedResults = (data.results || []).map(recipe => ({
+            ...recipe,
+            title: recipe.titleUk || recipe.title,
+            instructions: recipe.instructionsUk || recipe.instructions,
+            usedIngredientCount: recipe.usedIngredientCount,
+            missedIngredientCount: recipe.missedIngredientCount,
+            id: recipe.id,
+            image: recipe.image
+        }));
+
+        res.json(translatedResults);
     } catch (error) {
         console.error('Ошибка поиска рецептов:', error);
         res.status(500).json({ 
@@ -55,7 +67,8 @@ router.get('/recipe/:id', async (req, res) => {
     try {
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
-            language: 'uk'
+            language: 'en',
+            includeTranslations: 'uk'
         });
 
         const response = await fetch(`${API_BASE_URL}/${req.params.id}/information?${params}`);
@@ -65,8 +78,18 @@ router.get('/recipe/:id', async (req, res) => {
             throw new Error('API request failed');
         }
 
-        const data = await response.json();
-        res.json(data);
+        const recipe = await response.json();
+        
+        const translatedRecipe = {
+            ...recipe,
+            title: recipe.titleUk || recipe.title,
+            instructions: recipe.instructionsUk || recipe.instructions,
+            readyInMinutes: recipe.readyInMinutes,
+            servings: recipe.servings,
+            image: recipe.image
+        };
+
+        res.json(translatedRecipe);
     } catch (error) {
         console.error('Get recipe details error:', error);
         res.status(500).json({ 
