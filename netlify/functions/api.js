@@ -12,6 +12,9 @@ app.post('/search-recipes', async (req, res) => {
     try {
         const { ingredients, diet } = req.body;
         
+        console.log('Получен запрос с ингредиентами:', ingredients);
+        console.log('Диета:', diet);
+        
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
             ingredients: ingredients.join(','),
@@ -23,21 +26,22 @@ app.post('/search-recipes', async (req, res) => {
             language: 'uk'
         });
 
-        console.log('Searching recipes with params:', params.toString());
+        const url = `${API_BASE_URL}/complexSearch?${params}`;
+        console.log('URL запроса к API:', url);
 
-        const response = await fetch(`${API_BASE_URL}/complexSearch?${params}`);
+        const response = await fetch(url);
+        const responseText = await response.text();
+        
+        console.log('Ответ от API:', responseText);
         
         if (!response.ok) {
-            console.error('API Error:', await response.text());
-            throw new Error('API request failed');
+            throw new Error(`API ответ: ${response.status} - ${responseText}`);
         }
 
-        const data = await response.json();
-        console.log('API Response:', data);
-
+        const data = JSON.parse(responseText);
         res.json(data.results || []);
     } catch (error) {
-        console.error('Search recipes error:', error);
+        console.error('Ошибка поиска рецептов:', error);
         res.status(500).json({ 
             error: 'Помилка при пошуку рецептів',
             details: error.message 

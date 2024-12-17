@@ -73,35 +73,35 @@
 
     try {
         const dietSelect = document.getElementById('diet-select');
-        console.log('Sending request with:', { 
+        const requestData = { 
             ingredients, 
             diet: dietSelect.value 
-        });
+        };
+        
+        console.log('Отправляем запрос:', requestData);
 
         const response = await fetch('/.netlify/functions/api/search-recipes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ 
-                ingredients,
-                diet: dietSelect.value 
-            })
+            body: JSON.stringify(requestData)
         });
 
+        console.log('Статус ответа:', response.status);
         const responseText = await response.text();
-        console.log('Raw response:', responseText);
+        console.log('Текст ответа:', responseText);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
+            throw new Error(`Ошибка HTTP! Статус: ${response.status}, Ответ: ${responseText}`);
         }
         
         const recipes = JSON.parse(responseText);
-        console.log('Parsed recipes:', recipes);
+        console.log('Обработанные рецепты:', recipes);
         
         displayRecipes(recipes);
     } catch (error) {
-        console.error('Search error:', error);
+        console.error('Ошибка поиска:', error);
         showError('Помилка при пошуку рецептів: ' + error.message);
     } finally {
         showLoading(false);
