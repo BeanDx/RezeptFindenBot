@@ -9,10 +9,15 @@
 </head>
 <body>
     <script>
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Раскрываем на всю высоту
-        tg.ready(); // Сообщаем что приложение готово
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Расширяем на весь экран
+        
+        // Уведомляем бота, что приложение готово
+        tg.ready();
+        
+        // Используем цвета темы Telegram
+        document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor);
+        document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor);
     </script>
 
     <div class="container">

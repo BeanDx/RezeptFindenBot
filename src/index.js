@@ -16,13 +16,23 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Команды бота
 bot.command('start', (ctx) => {
-    ctx.reply('Найдите рецепты по вашим ингредиентам:', {
+    ctx.reply('Найдите рецепты по вашим ингредиентам!', {
         reply_markup: {
-            inline_keyboard: [[
-                { text: "Открыть приложение", web_app: { url: "https://ваш-домен.com" } }
-            ]]
+            keyboard: [[{
+                text: "Открыть приложение",
+                web_app: {
+                    url: process.env.WEBAPP_URL || 'https://rezept-finden.netlify.app'
+                }
+            }]],
+            resize_keyboard: true,
+            persistent: true
         }
     });
+});
+
+// Обработчик данных из веб-приложения
+bot.on('web_app_data', (ctx) => {
+    console.log('Получены данные из веб-приложения:', ctx.webAppData);
 });
 
 // API endpoints
@@ -86,9 +96,9 @@ app.listen(config.PORT, () => {
 });
 
 bot.launch().then(() => {
-    console.log('Bot is running');
+    console.log('Бот запущен');
 }).catch((error) => {
-    console.error('Bot launch failed:', error);
+    console.error('Ошибка запуска бота:', error);
 });
 
 // Graceful shutdown

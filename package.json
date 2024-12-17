@@ -1,21 +1,21 @@
 {
-  "name": "rezepttg",
+  "name": "rezept-finder",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
     "build": "mkdir -p dist && cp -r public/* dist/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "telegraf": "^4.15.3",
     "express": "^4.17.1",
+    "cors": "^2.8.5",
     "node-fetch": "^2.6.1",
+    "dotenv": "^16.0.0",
     "serverless-http": "^2.7.0"
   }
 }
