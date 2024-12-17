@@ -1,14 +1,16 @@
 const express = require('express');
 const serverless = require('serverless-http');
 const fetch = require('node-fetch');
+const router = express.Router();
 const app = express();
 
 const SPOONACULAR_API_KEY = process.env.SPOONACULAR_API_KEY;
 const API_BASE_URL = 'https://api.spoonacular.com/recipes';
 
 app.use(express.json());
+app.use('/.netlify/functions/api', router);
 
-app.post('/search-recipes', async (req, res) => {
+router.post('/search-recipes', async (req, res) => {
     try {
         const { ingredients, diet } = req.body;
         
@@ -49,7 +51,7 @@ app.post('/search-recipes', async (req, res) => {
     }
 });
 
-app.get('/recipe/:id', async (req, res) => {
+router.get('/recipe/:id', async (req, res) => {
     try {
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
