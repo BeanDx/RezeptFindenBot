@@ -63,37 +63,50 @@
         }
 
         async function searchRecipes() {
-            if (ingredients.length === 0) {
-                showError('Додайте хоча б один інгредієнт');
-                return;
-            }
+    if (ingredients.length === 0) {
+        showError('Додайте хоча б один інгредієнт');
+        return;
+    }
 
-            showLoading(true);
-            showError('');
+    showLoading(true);
+    showError('');
 
-            try {
-                const dietSelect = document.getElementById('diet-select');
-                const response = await fetch('/.netlify/functions/api/search-recipes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        ingredients,
-                        diet: dietSelect.value 
-                    })
-                });
+    try {
+        const dietSelect = document.getElementById('diet-select');
+        console.log('Sending request with:', { 
+            ingredients, 
+            diet: dietSelect.value 
+        });
 
-                if (!response.ok) throw new Error('Помилка при пошуку рецептів');
-                
-                const recipes = await response.json();
-                displayRecipes(recipes);
-            } catch (error) {
-                showError('Помилка при пошуку рецептів: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
+        const response = await fetch('/.netlify/functions/api/search-recipes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                ingredients,
+                diet: dietSelect.value 
+            })
+        });
+
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
         }
+        
+        const recipes = JSON.parse(responseText);
+        console.log('Parsed recipes:', recipes);
+        
+        displayRecipes(recipes);
+    } catch (error) {
+        console.error('Search error:', error);
+        showError('Помилка при пошуку рецептів: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
 
         function showLoading(show) {
             document.getElementById('loading').style.display = show ? 'block' : 'none';
