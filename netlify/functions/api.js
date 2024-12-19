@@ -27,11 +27,14 @@ router.post('/search-recipes', async (req, res) => {
     try {
         const { ingredients, diet } = req.body;
         
-        console.log('Поиск рецептов для ингредиентов:', ingredients);
+        // Переводим ингредиенты на английский для API
+        const translatedIngredients = await Promise.all(
+            ingredients.map(ing => translate(ing, { from: 'uk', to: 'en' }))
+        );
         
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
-            ingredients: ingredients.join(','),
+            ingredients: translatedIngredients.join(','),
             number: 10,
             diet: diet || '',
             instructionsRequired: true,
@@ -49,13 +52,20 @@ router.post('/search-recipes', async (req, res) => {
 
         // Переводим результаты
         const translatedResults = await Promise.all((data.results || []).map(async recipe => {
-            console.log('Переводим рецепт:', recipe.title);
-            const translatedTitle = await translateToUkrainian(recipe.title);
-            console.log('Переведенное название:', translatedTitle);
+            const [translatedTitle, translatedIngredients] = await Promise.all([
+                translateToUkrainian(recipe.title),
+                Promise.all((recipe.missedIngredients || []).map(ing => 
+                    translateToUkrainian(ing.name)
+                ))
+            ]);
             
             return {
                 ...recipe,
                 title: translatedTitle,
+                missedIngredients: recipe.missedIngredients.map((ing, i) => ({
+                    ...ing,
+                    name: translatedIngredients[i]
+                })),
                 usedIngredientCount: recipe.usedIngredientCount,
                 missedIngredientCount: recipe.missedIngredientCount,
                 id: recipe.id,
