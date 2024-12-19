@@ -43,11 +43,36 @@
 
         function addIngredient() {
             const input = document.getElementById('ingredient');
-            if (input.value.trim()) {
-                ingredients.push(input.value.trim());
-                updateIngredientsList();
-                input.value = '';
+            const value = input.value.trim();
+            
+            // Проверка на минимальную длину
+            if (value.length < 2) {
+                showError('Інгредієнт повинен містити мінімум 2 символи');
+                return;
             }
+            
+            // Проверка на наличие только букв и пробелов
+            if (!/^[а-яА-ЯіІїЇєЄґҐ\s']+$/u.test(value)) {
+                showError('Використовуйте тільки літери українського алфавіту');
+                return;
+            }
+            
+            // Проверка на дубликаты
+            if (ingredients.includes(value.toLowerCase())) {
+                showError('Цей інгредієнт вже додано');
+                return;
+            }
+            
+            // Проверка на максимальное количество ингредиентов
+            if (ingredients.length >= 10) {
+                showError('Можна додати максимум 10 інгредієнтів');
+                return;
+            }
+
+            ingredients.push(value.toLowerCase());
+            updateIngredientsList();
+            input.value = '';
+            showError(''); // Очищаем сообщение об ошибке
         }
 
         function updateIngredientsList() {
@@ -117,6 +142,10 @@
             if (message) {
                 errorDiv.textContent = message;
                 errorDiv.style.display = 'block';
+                // Автоматически скрываем ошибку через 3 секунды
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
             } else {
                 errorDiv.style.display = 'none';
             }
