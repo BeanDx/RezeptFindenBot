@@ -137,20 +137,6 @@
                 recipeCard.innerHTML = `
                     <h3>${recipe.title}</h3>
                     <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image">
-                    <div class="ingredients-info">
-                        <p>✓ Наявні інгредієнти: ${recipe.usedIngredientCount}</p>
-                        <p>⚠️ Додаткові інгредієнти: ${recipe.missedIngredientCount}</p>
-                        ${recipe.missedIngredients ? `
-                            <div class="missing-ingredients">
-                                <p>Потрібно докупити:</p>
-                                <ul>
-                                    ${recipe.missedIngredients.map(ing => 
-                                        `<li>${ing.name}</li>`
-                                    ).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    </div>
                     <button onclick="getRecipeDetails(${recipe.id})" class="details-button">Детальніше</button>
                 `;
                 container.appendChild(recipeCard);
