@@ -1,7 +1,7 @@
 const express = require('express');
 const serverless = require('serverless-http');
 const fetch = require('node-fetch');
-const translate = require('@vitalets/google-translate-api');
+const translate = require('translate-google');
 const router = express.Router();
 const app = express();
 
@@ -16,7 +16,7 @@ async function translateToUkrainian(text) {
     if (!text) return '';
     try {
         const result = await translate(text, { to: 'uk' });
-        return result.text;
+        return result;
     } catch (error) {
         console.error('Ошибка перевода:', error);
         return text;
@@ -26,6 +26,8 @@ async function translateToUkrainian(text) {
 router.post('/search-recipes', async (req, res) => {
     try {
         const { ingredients, diet } = req.body;
+        
+        console.log('Поиск рецептов для ингредиентов:', ingredients);
         
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
@@ -38,24 +40,30 @@ router.post('/search-recipes', async (req, res) => {
         });
 
         const url = `${API_BASE_URL}/complexSearch?${params}`;
-        const response = await fetch(url);
+        console.log('Запрос к API:', url);
         
-        if (!response.ok) {
-            throw new Error(`API ответ: ${response.status}`);
-        }
-
+        const response = await fetch(url);
         const data = await response.json();
         
-        // Переводим результаты
-        const translatedResults = await Promise.all((data.results || []).map(async recipe => ({
-            ...recipe,
-            title: await translateToUkrainian(recipe.title),
-            usedIngredientCount: recipe.usedIngredientCount,
-            missedIngredientCount: recipe.missedIngredientCount,
-            id: recipe.id,
-            image: recipe.image
-        })));
+        console.log('Получены рецепты:', data.results);
 
+        // Переводим результаты
+        const translatedResults = await Promise.all((data.results || []).map(async recipe => {
+            console.log('Переводим рецепт:', recipe.title);
+            const translatedTitle = await translateToUkrainian(recipe.title);
+            console.log('Переведенное название:', translatedTitle);
+            
+            return {
+                ...recipe,
+                title: translatedTitle,
+                usedIngredientCount: recipe.usedIngredientCount,
+                missedIngredientCount: recipe.missedIngredientCount,
+                id: recipe.id,
+                image: recipe.image
+            };
+        }));
+
+        console.log('Переведенные результаты:', translatedResults);
         res.json(translatedResults);
     } catch (error) {
         console.error('Ошибка поиска рецептов:', error);
@@ -73,18 +81,20 @@ router.get('/recipe/:id', async (req, res) => {
         });
 
         const response = await fetch(`${API_BASE_URL}/${req.params.id}/information?${params}`);
-        
-        if (!response.ok) {
-            throw new Error('API request failed');
-        }
-
         const recipe = await response.json();
         
+        console.log('Получен рецепт:', recipe.title);
+
         // Переводим данные рецепта
+        const translatedTitle = await translateToUkrainian(recipe.title);
+        const translatedInstructions = await translateToUkrainian(recipe.instructions);
+        
+        console.log('Переведенное название:', translatedTitle);
+        
         const translatedRecipe = {
             ...recipe,
-            title: await translateToUkrainian(recipe.title),
-            instructions: await translateToUkrainian(recipe.instructions),
+            title: translatedTitle,
+            instructions: translatedInstructions,
             readyInMinutes: recipe.readyInMinutes,
             servings: recipe.servings,
             image: recipe.image
