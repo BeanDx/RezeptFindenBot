@@ -27,11 +27,24 @@ router.post('/search-recipes', async (req, res) => {
     try {
         const { ingredients, diet } = req.body;
         
+        console.log('Получены ингредиенты (укр):', ingredients);
+        
         // Переводим ингредиенты на английский для API
         const translatedIngredients = await Promise.all(
-            ingredients.map(ing => translate(ing, { from: 'uk', to: 'en' }))
+            ingredients.map(async (ing) => {
+                try {
+                    const translated = await translate(ing, { from: 'uk', to: 'en' });
+                    console.log(`Перевод: ${ing} -> ${translated}`);
+                    return translated;
+                } catch (error) {
+                    console.error(`Ошибка перевода для ${ing}:`, error);
+                    return ing; // В случае ошибки возвращаем оригинальный текст
+                }
+            })
         );
         
+        console.log('Переведенные ингредиенты (англ):', translatedIngredients);
+
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
             ingredients: translatedIngredients.join(','),
