@@ -29,27 +29,42 @@ router.post('/search-recipes', async (req, res) => {
         
         console.log('Получены ингредиенты (укр):', ingredients);
         
+        // Добавляем базовые варианты перевода для распространенных ингредиентов
+        const ingredientMappings = {
+            'куряча грудка': 'chicken',
+            'морква': 'carrots',
+            // Можно добавить больше соответствий
+        };
+
         // Переводим ингредиенты на английский для API
         const translatedIngredients = await Promise.all(
             ingredients.map(async (ing) => {
                 try {
+                    // Сначала проверяем, есть ли прямое соответствие
+                    if (ingredientMappings[ing.toLowerCase()]) {
+                        return ingredientMappings[ing.toLowerCase()];
+                    }
+                    // Если нет, используем перевод
                     const translated = await translate(ing, { from: 'uk', to: 'en' });
                     console.log(`Перевод: ${ing} -> ${translated}`);
                     return translated;
                 } catch (error) {
                     console.error(`Ошибка перевода для ${ing}:`, error);
-                    return ing; // В случае ошибки возвращаем оригинальный текст
+                    return ing;
                 }
             })
         );
         
         console.log('Переведенные ингредиенты (англ):', translatedIngredients);
 
+        // Изменяем параметры запроса для более гибкого поиска
         const params = new URLSearchParams({
             apiKey: SPOONACULAR_API_KEY,
             ingredients: translatedIngredients.join(','),
             number: 10,
             diet: diet || '',
+            ignorePantry: false, // Добавляем этот параметр
+            ranking: 2, // Используем более гибкий рейтинг
             instructionsRequired: true,
             fillIngredients: true,
             addRecipeInformation: true
